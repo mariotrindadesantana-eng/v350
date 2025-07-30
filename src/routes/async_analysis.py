@@ -8,7 +8,19 @@ Rotas para análise assíncrona e dashboard do usuário
 import logging
 from datetime import datetime
 from flask import Blueprint, request, jsonify
-from tasks.analysis_tasks import process_market_analysis, validate_apis
+
+try:
+    from tasks.analysis_tasks import process_market_analysis, validate_apis
+    CELERY_AVAILABLE = True
+except ImportError:
+    try:
+        from src.tasks.analysis_tasks import process_market_analysis, validate_apis
+        CELERY_AVAILABLE = True
+    except ImportError:
+        CELERY_AVAILABLE = False
+        process_market_analysis = None
+        validate_apis = None
+
 from celery.result import AsyncResult
 from database import db_manager
 
@@ -19,6 +31,12 @@ async_bp = Blueprint('async', __name__)
 @async_bp.route('/analyze_async', methods=['POST'])
 def start_async_analysis():
     """Inicia análise assíncrona"""
+    
+    if not CELERY_AVAILABLE:
+        return jsonify({
+            'error': 'Celery não disponível',
+            'message': 'Funcionalidade assíncrona requer Celery e Redis configurados'
+        }), 503
     
     try:
         data = request.get_json()
@@ -187,6 +205,12 @@ def download_analysis(analysis_id):
 @async_bp.route('/validate_apis', methods=['POST'])
 def validate_api_keys():
     """Valida todas as chaves de API"""
+    
+    if not CELERY_AVAILABLE:
+        return jsonify({
+            'error': 'Celery não disponível',
+            'message': 'Validação assíncrona requer Celery e Redis configurados'
+        }), 503
     
     try:
         # Inicia validação assíncrona

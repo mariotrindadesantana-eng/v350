@@ -10,7 +10,11 @@ import logging
 import requests
 from typing import Dict, Any, List
 import google.generativeai as genai
-from services.groq_client import groq_client
+
+try:
+    from services.groq_client import groq_client
+except ImportError:
+    groq_client = None
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +61,14 @@ class APIValidator:
         # Valida APIs opcionais
         for api_name in self.optional_apis:
             try:
-                if api_name == 'GROQ_API_KEY':
+                if api_name == 'GROQ_API_KEY' and groq_client:
                     result = self.validate_groq()
                 elif api_name == 'GOOGLE_SEARCH_KEY':
                     result = self.validate_google_search()
                 elif api_name == 'HUGGINGFACE_API_KEY':
                     result = self.validate_huggingface()
+                elif api_name == 'GROQ_API_KEY' and not groq_client:
+                    result = {'valid': False, 'error': 'Groq library não instalada'}
                 else:
                     result = {'valid': False, 'error': 'Validador não implementado'}
                 
@@ -135,6 +141,9 @@ class APIValidator:
     
     def validate_groq(self) -> Dict[str, Any]:
         """Valida API do Groq"""
+        
+        if not groq_client:
+            return {'valid': False, 'error': 'Groq library não instalada - execute: pip install groq'}
         
         if not groq_client.is_available():
             return {'valid': False, 'error': 'GROQ_API_KEY não configurada'}

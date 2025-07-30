@@ -39,5 +39,5 @@ flask-compress==1.13
 chardet==5.2.0
 redis==4.5.4
 celery==5.3.4
-redis==4.5.4
 flower==2.0.1
+groq==0.4.1

@@ -17,7 +17,7 @@ celery_app = Celery(
     'arqv30_enhanced',
     broker=os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
     backend=os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-    include=['tasks.analysis_tasks']
+    include=['src.tasks.analysis_tasks']
 )
 
 # Configurações do Celery
@@ -34,8 +34,8 @@ celery_app.conf.update(
     worker_max_tasks_per_child=1000,
     result_expires=3600,  # 1 hora
     task_routes={
-        'tasks.analysis_tasks.process_market_analysis': {'queue': 'analysis'},
-        'tasks.analysis_tasks.validate_apis': {'queue': 'validation'},
+        'src.tasks.analysis_tasks.process_market_analysis': {'queue': 'analysis'},
+        'src.tasks.analysis_tasks.validate_apis': {'queue': 'validation'},
     }
 )
 

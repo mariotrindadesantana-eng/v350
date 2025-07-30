@@ -24,7 +24,7 @@ def start_celery_worker():
     
     # Comando para iniciar worker
     cmd = [
-        'celery', '-A', 'src.celery_app', 'worker',
+        'celery', '-A', 'celery_app', 'worker',
         '--loglevel=info',
         '--concurrency=2',
         '--queues=analysis,validation',
@@ -33,7 +33,7 @@ def start_celery_worker():
     
     try:
         # Inicia worker
-        subprocess.run(cmd, cwd=os.getcwd())
+        subprocess.run(cmd, cwd=os.path.join(os.getcwd(), 'src'))
         
     except KeyboardInterrupt:
         print("\n🛑 Parando Celery Worker...")
@@ -46,12 +46,12 @@ def start_celery_flower():
     print("🌸 Iniciando Flower...")
     
     cmd = [
-        'celery', '-A', 'src.celery_app', 'flower',
+        'celery', '-A', 'celery_app', 'flower',
         '--port=5555'
     ]
     
     try:
-        subprocess.run(cmd, cwd=os.getcwd())
+        subprocess.run(cmd, cwd=os.path.join(os.getcwd(), 'src'))
         
     except KeyboardInterrupt:
         print("\n🛑 Parando Flower...")

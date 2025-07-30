@@ -52,7 +52,16 @@ logger = logging.getLogger(__name__)
 from routes.analysis import analysis_bp
 from routes.user import user_bp
 from routes.pdf_generator import pdf_bp
-from routes.async_analysis import async_bp
+
+# Importa async_analysis apenas se Celery estiver disponível
+try:
+    from routes.async_analysis import async_bp
+    ASYNC_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"⚠️ Funcionalidades assíncronas não disponíveis: {e}")
+    async_bp = None
+    ASYNC_AVAILABLE = False
+
 from services.production_search_manager import production_search_manager
 from services.production_content_extractor import production_content_extractor
 from services.api_validator import api_validator
@@ -107,7 +116,13 @@ def create_app():
     app.register_blueprint(analysis_bp, url_prefix='/api')
     app.register_blueprint(user_bp, url_prefix='/api')
     app.register_blueprint(pdf_bp, url_prefix='/api')
-    app.register_blueprint(async_bp, url_prefix='/api')
+    
+    # Registra async blueprint apenas se disponível
+    if ASYNC_AVAILABLE and async_bp:
+        app.register_blueprint(async_bp, url_prefix='/api')
+        logger.info("✅ Funcionalidades assíncronas habilitadas")
+    else:
+        logger.warning("⚠️ Funcionalidades assíncronas desabilitadas")
     
     # Service Worker route
     @app.route('/sw.js')

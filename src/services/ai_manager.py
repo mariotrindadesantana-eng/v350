@@ -12,7 +12,14 @@ import json
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 import google.generativeai as genai
-import openai
+
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    openai = None
+
 import requests
 
 logger = logging.getLogger(__name__)
@@ -76,11 +83,13 @@ class AIManager:
         # Inicializa OpenAI
         try:
             openai_key = os.getenv('OPENAI_API_KEY')
-            if openai_key:
+            if openai_key and OPENAI_AVAILABLE:
                 openai.api_key = openai_key
                 self.providers["openai"]["client"] = openai.OpenAI(api_key=openai_key)
                 self.providers["openai"]["available"] = True
                 logger.info("✅ OpenAI inicializado com sucesso")
+            elif not OPENAI_AVAILABLE:
+                logger.warning("⚠️ OpenAI library não instalada")
         except Exception as e:
             logger.warning(f"⚠️ Falha ao inicializar OpenAI: {str(e)}")
         
@@ -186,6 +195,9 @@ class AIManager:
     
     def _generate_with_openai(self, prompt: str, max_tokens: int) -> Optional[str]:
         """Gera conteúdo usando OpenAI"""
+        if not OPENAI_AVAILABLE:
+            raise Exception("OpenAI library não disponível")
+            
         try:
             openai_key = os.getenv("OPENAI_API_KEY")
             if not openai_key:

@@ -37,6 +37,7 @@ echo 🛑 Para parar: Ctrl+C
 echo.
 
 REM Inicia worker
-celery -A src.celery_app worker --loglevel=info --concurrency=2 --queues=analysis,validation
+cd src
+celery -A celery_app worker --loglevel=info --concurrency=2 --queues=analysis,validation
 
 pause

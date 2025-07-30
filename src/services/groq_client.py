@@ -8,7 +8,13 @@ Cliente para integração com Groq API como fallback do Gemini
 import os
 import logging
 from typing import Optional, Dict, Any
-from groq import Groq
+
+try:
+    from groq import Groq
+    GROQ_AVAILABLE = True
+except ImportError:
+    GROQ_AVAILABLE = False
+    Groq = None
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +26,14 @@ class GroqClient:
         self.api_key = os.getenv("GROQ_API_KEY")
         self.model = "llama3-70b-8192"  # Modelo mais capaz
         
-        if self.api_key:
+        if self.api_key and GROQ_AVAILABLE:
             self.client = Groq(api_key=self.api_key)
             self.available = True
             logger.info("✅ Groq client inicializado com sucesso")
+        elif not GROQ_AVAILABLE:
+            self.client = None
+            self.available = False
+            logger.warning("⚠️ Groq library não instalada - execute: pip install groq")
         else:
             self.client = None
             self.available = False
